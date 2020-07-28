@@ -3,6 +3,7 @@
 #include "util.h"
 #include "tokens.h"
 #include "errormsg.h"
+#include "tiger_string.h"
 
 int charPos=1;
 
@@ -22,7 +23,7 @@ void adjust(void)
 %}
 
 digit [0-9]
-%Start TIGER_INITIAL TIGER_COMMENT
+%Start TIGER_INITIAL TIGER_COMMENT TIGER_STRING
 
 %%
 <TIGER_INITIAL>[ \t]+                   {adjust(); continue;}
@@ -67,6 +68,10 @@ digit [0-9]
 <TIGER_INITIAL>do                       {adjust(); return DO;}
 <TIGER_INITIAL>of                       {adjust(); return OF;}
 <TIGER_INITIAL>nil                      {adjust(); return NIL;}
+<TIGER_INITIAL>\"                       {adjust(); tiger_string_init(); BEGIN TIGER_STRING;}
+<TIGER_STRING>\\n                       {adjust(); tiger_string_append("\n", 1);}
+<TIGER_STRING>\"                        {adjust(); BEGIN TIGER_INITIAL; yylval.sval = tiger_string_inner(); return STRING;}
+<TIGER_STRING>.                         {adjust(); tiger_string_append(yytext, yyleng);}
 <TIGER_INITIAL>[a-zA-Z][_0-9a-zA-Z]*    {adjust(); yylval.sval = yytext; return ID;}
 <TIGER_INITIAL>[0-9]+                   {adjust(); yylval.ival=atoi(yytext); return INT;}
 <TIGER_INITIAL>"/*"                     {adjust(); BEGIN TIGER_COMMENT;}
