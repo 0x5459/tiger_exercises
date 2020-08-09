@@ -1,46 +1,57 @@
-### 2.1 写出下面每一种单词的正则表达式。
+## 2.1 写出下面每一种单词的正则表达式。
 
-a. 字母表 {a, b, c} 上满足后面条件的字符串：首次出现的 a 位于首次出现的 b 之前。
+### a. 字母表 {a, b, c} 上满足后面条件的字符串：首次出现的 a 位于首次出现的 b 之前。
 
 #### 解答
+
 `[ac]*[bc]*`
 
-b. 字母表 {a, b, c} 上由偶数个 a 组成的字符串。
+### b. 字母表 {a, b, c} 上由偶数个 a 组成的字符串。
 
-
+#### 解答
 `([bc]*(a[bc]*a)*)*`
 
-c. 是 4 的倍数的二进制数。
+### c. 是 4 的倍数的二进制数。
+
+#### 解答
 
 `[10]+00`
 
-d. 大于 101001 的二进制数。
+### d. 大于 101001 的二进制数。
+
+#### 解答
 
 `1[01]{6,}|11[01]{4}|1011[01]{2}|10101[10]`
 
-e. 字母表 {a, b, c} 上不包含连续子串 baa 的字符串。
+### e. 字母表 {a, b, c} 上不包含连续子串 baa 的字符串。
+
+#### 解答
 
 `[ac]*b*a?[bc]*`
 
-f. C 语言中非负整常数组成的语言，其中以 0 开头的数是八进制常数。
+### f. C 语言中非负整常数组成的语言，其中以 0 开头的数是八进制常数。
+
+#### 解答
 
  `0[0-7]*|[1-9][0-9]*`
 
-g. 使得方程 ![a^n+b^n=c^n](https://render.githubusercontent.com/render/math?math=a%5En%2Bb%5En%3Dc%5En)
+### g. 使得方程 ![a^n+b^n=c^n](https://render.githubusercontent.com/render/math?math=a%5En%2Bb%5En%3Dc%5En)
+
+#### 解答
 
 `1|10`
 
-2.2 对于下列表描述，试解释为什么不存在对应的正则表达式。
+## 2.2 对于下列表描述，试解释为什么不存在对应的正则表达式。
 
-a. 由 a 和 b 组成的字符串，其中 a 的个数要多于 b。
+### a. 由 a 和 b 组成的字符串，其中 a 的个数要多于 b。
 
-b. 由 a 和 b 组成的回文字符串（顺读与倒读相同）。
+### b. 由 a 和 b 组成的回文字符串（顺读与倒读相同）。
 
-c. 语法上正确的 C 程序。
+### c. 语法上正确的 C 程序。
 
-2.3 用自然语言描述下述有限状态自动机识别的语言。
+## 2.3 用自然语言描述下述有限状态自动机识别的语言。
 
-a.
+#### a.
 <!-- This is the original graph
 digraph G {
 
@@ -69,12 +80,14 @@ digraph G {
 -->
 ![digraph](https://g.gravizo.com/svg?digraph%20G%20%7B%0A%0A%20%20%20start%5Blabel%3D%20%22%22%2C%20shape%3Dnone%2Cheight%3D.0%2Cwidth%3D.0%5D%0A%20%20%20%7Bnode%5Bshape%3Dcircle%5D%3B1%3B2%3B3%3B4%3B6%3B7%3B8%3B9%7D%0A%20%20%20%7Bnode%5Bshape%3Ddoublecircle%5D%3B10%7D%0A%20%20%20%0A%20%20%20start-%3E1%0A%20%20%201-%3E2%5Blabel%3D%220%22%5D%0A%20%20%201-%3E6%5Blabel%3D%221%22%5D%0A%20%20%202-%3E3%5Blabel%3D%221%22%5D%0A%20%20%202-%3E7%5Blabel%3D%220%22%5D%0A%20%20%203-%3E4%5Blabel%3D%221%22%5D%0A%20%20%203-%3E8%5Blabel%3D%220%22%5D%0A%20%20%204-%3E9%5Blabel%3D%220%22%5D%0A%20%20%204-%3E10%5Blabel%3D%221%22%5D%0A%20%20%206-%3E7%5Blabel%3D%220%22%5D%0A%20%20%206-%3E7%5Blabel%3D%221%22%5D%0A%20%20%207-%3E8%5Blabel%3D%220%22%5D%0A%20%20%207-%3E8%5Blabel%3D%221%22%5D%0A%20%20%208-%3E10%5Blabel%3D%220%22%5D%0A%20%20%208-%3E10%5Blabel%3D%221%22%5D%0A%20%20%20%0A%20%20%20rankdir%3D%22LR%22%0A%7D)
 
+#### 解答
+
 描述了不为 0110 的 4 位二进制字符串。
 
 
 
 
-b.
+### b.
 <!-- This is the original graph
 digraph G {
 
@@ -94,10 +107,12 @@ digraph G {
 -->
 ![digraph](https://g.gravizo.com/svg?digraph%20G%20%7B%0A%0A%20%20%20start%5Blabel%3D%20%22%22%2C%20shape%3Dnone%2Cheight%3D.0%2Cwidth%3D.0%5D%0A%20%20%20%7Bnode%5Bshape%3Dcircle%5D%3B%22%20%22%3B%22%20%20%20%22%3B%22%20%20%20%20%22%3B%22%20%20%20%20%20%22%3B%7D%0A%20%20%20%7Bnode%5Bshape%3Ddoublecircle%5D%3B%22%20%20%22%7D%0A%20%20%0A%20%20%20start-%3E%22%20%22%0A%20%20%20%22%20%22-%3E%22%20%20%22%5Blabel%3D%22a%22%5D%0A%20%20%20%22%20%20%22-%3E%22%20%20%20%22%5Blabel%3D%22a%22%5D%0A%20%20%20%22%20%20%20%22-%3E%22%20%20%20%20%22%5Blabel%3D%22a%22%5D%0A%20%20%20%22%20%20%20%20%22-%3E%22%20%20%20%20%20%22%5Blabel%3D%22a%22%5D%0A%20%20%20%22%20%20%20%20%20%22-%3E%22%20%22%5Blabel%3D%22a%22%5D%0A%20%20%20%0A%20%20%20rankdir%3D%22LR%22%3B%0A%7D)
 
- 
-描述了 ![5^n+1(n>=0)](https://render.githubusercontent.com/render/math?math=5%5En%2B1(n\geq0)) 个 a。
 
-c.
+#### 解答
+
+描述了 ![5^n+1(n∈N^*)](https://render.githubusercontent.com/render/math?math=5%5En%2B1(n%20%5cin%20%5cN%5e*)) 个 a。
+
+### c.
 <!-- This is the original graph
 
 digraph G {
@@ -121,9 +136,11 @@ digraph G {
 
 
 
-2.4 将下面两个正则表达式转换为非确定的有限自动机。
+## 2.4 将下面两个正则表达式转换为非确定的有限自动机。
 
-a. `(if|then|else)`
+### a. `(if|then|else)`
+
+#### 解答
 
 <!-- This is the original graph
 digraph G {
@@ -148,7 +165,9 @@ digraph G {
 -->
 ![digraph](https://g.gravizo.com/svg?digraph%20G%20%7B%0A%0A%20%20%20start%5Blabel%3D%20%22%22%2C%20shape%3Dnone%2Cheight%3D.0%2Cwidth%3D.0%5D%0A%20%20%20%7Bnode%5Bshape%3Dcircle%5D%3B1%3B2%3B4%3B5%3B6%3B8%3B9%3B10%7D%0A%20%20%20%7Bnode%5Bshape%3Ddoublecircle%5D%3B3%3B7%3B11%7D%0A%20%20%0A%20%20%20start-%3E1%0A%20%20%201-%3E2%5Blabel%3D%22i%22%5D%0A%20%20%202-%3E3%5Blabel%3D%22f%22%5D%0A%20%20%201-%3E4%5Blabel%3D%22t%22%5D%0A%20%20%204-%3E5%5Blabel%3D%22h%22%5D%0A%20%20%205-%3E6%5Blabel%3D%22e%22%5D%0A%20%20%206-%3E7%5Blabel%3D%22n%22%5D%0A%20%20%201-%3E8%5Blabel%3D%22e%22%5D%0A%20%20%208-%3E9%5Blabel%3D%22l%22%5D%0A%20%20%209-%3E10%5Blabel%3D%22s%22%5D%0A%20%20%2010-%3E11%5Blabel%3D%22e%22%5D%0A%20%20%20rankdir%3D%22LR%22%3B%0A%7D%0A)
 
-b. `a((b|a*c)x)*|x*a`
+### b. `a((b|a*c)x)*|x*a`
+
+#### 解答
 
 <!-- This is the original graph
 digraph G {
@@ -174,9 +193,9 @@ digraph G {
 -->
 ![digraph](https://g.gravizo.com/svg?digraph%20G%20%7B%0A%20%20%20start%5Blabel%3D%20%22%22%2C%20shape%3Dnone%2Cheight%3D.0%2Cwidth%3D.0%5D%3B%0A%20%20%20%7Bnode%5Bshape%3Dcircle%5D%3B1%3B2%3B3%3B4%3B7%7D%3B%0A%20%20%20%7Bnode%5Bshape%3Ddoublecircle%5D%3B6%3B8%7D%0A%20%20%20%0A%20%20%20start-%3E1%0A%20%20%201-%3E2%5Blabel%3D%22a%22%5D%0A%20%20%202-%3E4%5Blabel%3D%22b%22%5D%0A%20%20%202-%3E3%5Blabel%3D%22%CE%B5%22%5D%0A%20%20%203-%3E3%5Blabel%3D%22a%22%5D%0A%20%20%203-%3E4%5Blabel%3D%22c%22%5D%0A%20%20%204-%3E6%5Blabel%3D%22x%22%5D%0A%20%20%201-%3E7%5Blabel%3D%22%CE%B5%22%5D%0A%20%20%207-%3E7%5Blabel%3D%22x%22%5D%0A%20%20%207-%3E8%5Blabel%3D%22a%22%5D%0A%20%20%202-%3E6%5Blabel%3D%22%CE%B5%22%5D%0A%20%20%206-%3E2%5Blabel%3D%22%CE%B5%22%5D%0A%20%20%20%0A%20%20%20rankdir%3D%22LR%22%3B%0A%7D)
 
-2.5 将下面的 NFA 转换为确定的有限自动机。
+## 2.5 将下面的 NFA 转换为确定的有限自动机。
 
-a.
+### a.
 
 <!-- This is the original graph
 digraph G {
@@ -201,6 +220,7 @@ digraph G {
 -->
 ![digraph](https://g.gravizo.com/svg?digraph%20G%20%7B%0A%0A%20%20%20start%5Blabel%3D%20%22%22%2C%20shape%3Dnone%2Cheight%3D.0%2Cwidth%3D.0%5D%0A%20%20%20%7Bnode%5Bshape%3Dcircle%5D%3B1%3B2%3B3%3B4%3B5%3B6%7D%0A%20%20%20%7Bnode%5Bshape%3Ddoublecircle%5D%3B7%7D%0A%20%20%0A%20%20%20start-%3E1%0A%20%20%201-%3E2%5Blabel%3D%22%CE%B5%22%5D%0A%20%20%202-%3E3%5Blabel%3D%22%CE%B5%22%5D%0A%20%20%203-%3E4%5Blabel%3D%22%CE%B5%22%5D%0A%20%20%204-%3E1%5Blabel%3D%22%CE%B5%22%5D%0A%20%20%201-%3E5%5Blabel%3D%22%CE%B5%22%5D%0A%20%20%205-%3E2%5Blabel%3D%22z%22%5D%0A%20%20%205-%3E6%5Blabel%3D%22%CE%B5%22%5D%0A%20%20%202-%3E6%5Blabel%3D%22y%22%5D%0A%20%20%206-%3E7%5Blabel%3D%22%CE%B5%22%5D%0A%20%20%20%0A%20%20%20rankdir%3D%22LR%22%3B%0A%7D%0A)
 
+#### 解答
 
 <!-- This is the original graph
 digraph A {
@@ -215,7 +235,7 @@ digraph A {
 -->
 ![a](https://g.gravizo.com/svg?digraph%20G%20%7B%0A%20%20%20start%5Blabel%3D%20%22%22%2C%20shape%3Dnone%2Cheight%3D.0%2Cwidth%3D.0%5D%0A%20%20%20%7Bnode%5Bshape%3Dcircle%5D%3B%221%2C2%2C3%2C4%22%7D%0A%20%20%20%7Bnode%5Bshape%3Ddoublecircle%5D%3B%225%2C6%2C7%22%7D%0A%20%20%20start-%3E%221%2C2%2C3%2C4%22%0A%20%20%20%221%2C2%2C3%2C4%22-%3E%225%2C6%2C7%22%5Blabel%3D%22x%7Cy%22%5D%0A%20%20%20%225%2C6%2C7%22-%3E%221%2C2%2C3%2C4%22%5Blabel%3D%22z%22%5D%0A%20%20%20rankdir%3D%22LR%22%0A%7D)
 
-b.
+### b.
 
 <!-- This is the original graph
 digraph B {
@@ -238,6 +258,8 @@ digraph B {
 }
 -->
 ![digraph](https://g.gravizo.com/svg?digraph%20G%20%7B%0A%20%20%20start%5Blabel%3D%20%22%22%2C%20shape%3Dnone%2Cheight%3D.0%2Cwidth%3D.0%5D%0A%20%20%20%7Bnode%5Bshape%3Dcircle%5D%3B1%3B2%3B3%3B4%7D%0A%20%20%20%7Bnode%5Bshape%3Ddoublecircle%5D%3B6%7D%0A%20%20%20start-%3E1%0A%20%20%201-%3E1%5Blabel%3D%22a%22%5D%0A%20%20%201-%3E1%5Blabel%3D%22b%22%5D%0A%20%20%201-%3E2%5Blabel%3D%22a%22%5D%0A%20%20%202-%3E3%5Blabel%3D%22a%22%5D%0A%20%20%202-%3E3%5Blabel%3D%22b%22%5D%0A%20%20%203-%3E4%5Blabel%3D%22a%22%5D%0A%20%20%203-%3E4%5Blabel%3D%22b%22%5D%0A%20%20%204-%3E5%5Blabel%3D%22a%22%5D%0A%20%20%204-%3E5%5Blabel%3D%22b%22%5D%0A%20%20%205-%3E6%5Blabel%3D%22a%22%5D%0A%20%20%205-%3E6%5Blabel%3D%22b%22%5D%0A%20%20%20rankdir%3D%22LR%22%0A%7D)
+
+#### 解答
 
 <!-- This is the original graph
 digraph G {
@@ -312,3 +334,68 @@ digraph G {
 -->
 
 ![digraph](https://g.gravizo.com/svg?digraph%20G%20%7B%0A%0A%20%20start%5Blabel%3D%20%22%22%2C%20shape%3Dnone%2Cheight%3D.0%2Cwidth%3D.0%5D%0A%20%20%7Bnode%5Bshape%3Dcircle%5D%3B%221%2C5%2C10%2C14%22%3B%222%2C6%2C11%2C15%22%3B%223%2C7%2C12%2C16%22%7D%0A%20%20%7Bnode%5Bshape%3Ddoublecircle%5D%3B%224%2C8%22%3B%2213%2C17%22%3B9%3B18%7D%0A%20%20%20%20%0A%20%20start-%3E%221%2C5%2C10%2C14%22%0A%20%20%221%2C5%2C10%2C14%22-%3E%222%2C6%2C11%2C15%22%5Blabel%3D%22c%22%5D%0A%20%20%222%2C6%2C11%2C15%22-%3E%223%2C7%2C12%2C16%22%5Blabel%3D%22a%22%5D%0A%20%20%223%2C7%2C12%2C16%22-%3E%224%2C8%22%5Blabel%3D%22t%22%5D%0A%20%20%223%2C7%2C12%2C16%22-%3E%2213%2C17%22%5Blabel%3D%22r%22%5D%0A%20%20%224%2C8%22-%3E9%5Blabel%3D%22s%22%5D%0A%20%20%2213%2C17%22-%3E18%5Blabel%3D%22s%22%5D%0A%20%20rankdir%3D%22LR%22%0A%7D)
+
+## 2.6 在下面这个自动机中找出两个等价的状态，并合并它们产生一个识别相同语言且较小的自动机。重复这个过程直到没有等价状态为止。
+
+<!-- This is the original graph
+digraph G {
+  start[label= "", shape=none,height=.0,width=.0]
+  {node[shape=circle];1;2;4;5;6;7;8}
+  {node[shape=doublecircle];3}
+  start->1
+  1->2[label="0"]
+  1->6[label="1"]
+  2->3[label="1"]
+  2->7[label="0"]
+  3->1[label="0"]
+  3->3[label="1"]
+  4->3[label="0"]
+  4->7[label="1"]
+  5->6[label="1"]
+  5->8[label="0"]
+  6->7[label="1"]
+  6->3[label="0"]
+  7->5[label="1"]
+  7->7[label="0"]
+  8->7[label="0"]
+  8->3[label="1"]
+  
+  {rank = same; 1;2;3;4}
+  {rank = same; 5;6;7;8}
+}
+-->
+
+
+#### 解答
+
+
+P0 = {{1, 2, 4, 5, 6, 7, 8}, {3}}
+
+P1 = {{1, 5, 7}, {2, 8}, {4, 6}, {3}}
+
+P2 = {{1, 5} {2, 8}, {7}, {4, 6}, {3}}
+
+P3 = {{1, 5} {2, 8}, {7}, {4, 6}, {3}}
+
+p2 = p3 终止。
+
+
+<!-- This is the original graph
+digraph G {
+  start[label= "", shape=none,height=.0,width=.0]
+  {node[shape=circle];"1,5";"2,8";7;"4,6"}
+  {node[shape=doublecircle];3}
+  start->"1,5"
+  "1,5"->"2,8"[label="0"]
+  "1,5"->"4,6"[label="1"]
+  "2,8"->7[label="0"]
+  "2,8"->3[label="1"]
+  7->7[label="0"]
+  7->"1,5"[label="1"]
+  "4,6"->7[label="1"]
+  "4,6"->3[label="0"]
+  rankdir="LR"
+}
+-->
+
+![digraph](https://g.gravizo.com/svg?digraph%20G%20%7B%0A%20%20start%5Blabel%3D%20%22%22%2C%20shape%3Dnone%2Cheight%3D.0%2Cwidth%3D.0%5D%0A%20%20%7Bnode%5Bshape%3Dcircle%5D%3B%221%2C5%22%3B%222%2C8%22%3B7%3B%224%2C6%22%7D%0A%20%20%7Bnode%5Bshape%3Ddoublecircle%5D%3B3%7D%0A%20%20start-%3E%221%2C5%22%0A%20%20%221%2C5%22-%3E%222%2C8%22%5Blabel%3D%220%22%5D%0A%20%20%221%2C5%22-%3E%224%2C6%22%5Blabel%3D%221%22%5D%0A%20%20%222%2C8%22-%3E7%5Blabel%3D%220%22%5D%0A%20%20%222%2C8%22-%3E3%5Blabel%3D%221%22%5D%0A%20%207-%3E7%5Blabel%3D%220%22%5D%0A%20%207-%3E%221%2C5%22%5Blabel%3D%221%22%5D%0A%20%20%224%2C6%22-%3E7%5Blabel%3D%221%22%5D%0A%20%20%224%2C6%22-%3E3%5Blabel%3D%220%22%5D%0A%20%20rankdir%3D%22LR%22%0A%7D)
