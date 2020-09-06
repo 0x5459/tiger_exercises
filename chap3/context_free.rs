@@ -19,7 +19,7 @@ impl fmt::Display for Production {
     }
 }
 
-#[derive(Clone, Hash, Eq, PartialEq)]
+#[derive(Debug, Clone, Hash, Eq, PartialEq)]
 pub enum Symbol {
     Nonterminal(String),
     Terminal(Terminal),
@@ -48,7 +48,19 @@ impl Symbol {
     }
 
     pub fn is_epsilon(&self) -> bool {
-        if let Symbol::Terminal(Terminal::Epsilon) = self {
+        Symbol::Terminal(Terminal::Epsilon) == *self
+    }
+
+    pub fn is_nonterminal(&self) -> bool {
+        if let Symbol::Nonterminal(_) = self {
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn is_terminal(&self) -> bool {
+        if let Symbol::Terminal(_) = self {
             true
         } else {
             false
@@ -56,7 +68,7 @@ impl Symbol {
     }
 }
 
-#[derive(Clone, Hash, Eq, PartialEq)]
+#[derive(Debug, Clone, Hash, Eq, PartialEq)]
 pub enum Terminal {
     Other(String),
     Epsilon,
@@ -71,7 +83,7 @@ impl fmt::Display for Terminal {
     }
 }
 
-/// 返回文法 3-6
+/// grammar_3_6() returns grammar 3-6 (p33)
 /// Z -> d          Y -> ε      X -> Y
 /// Z -> X Y Z      Y -> c       X -> a
 pub fn grammar_3_6() -> Grammar {
