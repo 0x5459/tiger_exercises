@@ -1,178 +1,136 @@
 #![allow(non_snake_case)]
 
+use context_free::Terminal;
+
 use crate::context_free::{Grammar, Symbol};
 use std::collections::{HashMap, HashSet};
 
 pub mod context_free;
 
-pub fn nullable_set(grammar: &Grammar) -> HashSet<Symbol> {
-    let (mut nullable_set, mut ns_is_changed) = (HashSet::new(), true);
+pub fn compute_first_follow_nullable_sets(
+    grammar: &Grammar,
+) -> (
+    HashMap<Symbol, HashSet<Symbol>>,
+    HashMap<Symbol, HashSet<Symbol>>,
+    HashSet<Symbol>,
+) {
+    // Initialize FIRST and FOLLOW to all empty sets. and nullable to signle Epsilon set.
+    let (mut first_sets, mut follow_sets, mut nullable_set) = (
+        HashMap::with_capacity(grammar.0.len()),
+        HashMap::with_capacity(grammar.0.len()),
+        [Symbol::Terminal(Terminal::Epsilon)]
+            .iter()
+            .cloned()
+            .collect::<HashSet<_>>(),
+    );
 
-    while ns_is_changed {
-        ns_is_changed = false;
-        for production in &grammar.0 {
-            if is_only_epsilon(&production.rhs)
-                || (is_all_nonterminal(&production.rhs)
-                    && is_all_in_nullable_set(&production.rhs, &nullable_set))
-            {
-                ns_is_changed = nullable_set.insert(production.start_symbol.clone());
+    for prod in &grammar.0 {
+        first_sets.insert(prod.start_symbol.clone(), HashSet::new());
+        follow_sets.insert(prod.start_symbol.clone(), HashSet::new());
+
+        for symbol in &prod.rhs {
+            if symbol.is_terminal() {
+                if !first_sets.contains_key(symbol) {
+                    // Init first_sets for each terminal symbol.
+                    first_sets.insert(symbol.clone(), [symbol.clone()].iter().cloned().collect());
+                }
+
+                if !follow_sets.contains_key(symbol) {
+                    follow_sets.insert(symbol.clone(), HashSet::new());
+                }
             }
         }
     }
 
-    #[inline]
-    fn is_only_epsilon(ss: &Vec<Symbol>) -> bool {
-        ss.len() == 1 && ss.first().unwrap().is_epsilon()
-    }
+    let mut sets_is_changed = true;
+    while sets_is_changed {
+        // comput first sets and nullable set
+        for prod in &grammar.0 {
+            let mut i_nullable = true;
 
-    #[inline]
-    fn is_all_nonterminal(ss: &Vec<Symbol>) -> bool {
-        ss.iter().all(Symbol::is_nonterminal)
-    }
-
-    #[inline]
-    fn is_all_in_nullable_set(ss: &Vec<Symbol>, nullable_set: &HashSet<Symbol>) -> bool {
-        ss.iter().all(|s| nullable_set.contains(s))
-    }
-
-    nullable_set
-}
-
-pub fn first_sets(
-    grammar: &Grammar,
-    nullable_set: &HashSet<Symbol>,
-) -> HashMap<Symbol, HashSet<Symbol>> {
-    let (mut first_sets, mut fs_is_changed) = (HashMap::with_capacity(grammar.0.len()), true);
-    // Initialize all nonterminal symbol to empty set.
-    grammar.0.iter().for_each(|p| {
-        first_sets.insert(p.start_symbol.clone(), HashSet::new());
-    });
-
-    while fs_is_changed {
-        fs_is_changed = false;
-        for production in &grammar.0 {
-            for symbol in &production.rhs {
-                if symbol.is_terminal() && !symbol.is_epsilon() {
-                    fs_is_changed = first_sets
-                        .get_mut(&production.start_symbol)
-                        .unwrap()
-                        .insert(symbol.clone());
-                    break;
-                }
-                if symbol.is_nonterminal() {
-                    let merge = first_sets.get(symbol).cloned().unwrap_or_else(HashSet::new);
-                    let cur_first_set = first_sets.get_mut(&production.start_symbol).unwrap();
-
-                    if !fs_is_changed {
+            for i in 0..prod.rhs.len() {
+                if i_nullable {
+                    // if Y1 ··· Yi−1 are all nullable
+                    //   then FIRST[X] ← FIRST[X] ∪ FIRST[Yi]
+                    let i_first_set = first_sets
+                        .get(&prod.rhs[i])
+                        .cloned()
+                        .unwrap_or_else(HashSet::new);
+                    let cur_first_set = first_sets.get_mut(&prod.start_symbol).unwrap();
+                    if !sets_is_changed {
                         let old_len = cur_first_set.len();
-                        cur_first_set.extend(merge);
-                        fs_is_changed = old_len != cur_first_set.len();
+                        cur_first_set.extend(i_first_set);
+                        sets_is_changed = old_len != cur_first_set.len();
                     } else {
-                        cur_first_set.extend(merge);
-                    }
-
-                    if !nullable_set.contains(symbol) {
-                        break;
+                        cur_first_set.extend(i_first_set);
                     }
                 }
-            }
-        }
-    }
 
-    first_sets
-}
-
-pub fn follow_sets(
-    grammar: &Grammar,
-    nullable_set: &HashSet<Symbol>,
-    first_sets: &HashMap<Symbol, HashSet<Symbol>>,
-) -> HashMap<Symbol, HashSet<Symbol>> {
-    let (mut follow_sets, mut fs_is_changed) = (HashMap::with_capacity(grammar.0.len()), true);
-
-    // Initialize all nonterminal symbol to empty set.
-    grammar.0.iter().for_each(|p| {
-        follow_sets.insert(p.start_symbol.clone(), HashSet::new());
-    });
-
-    while fs_is_changed {
-        fs_is_changed = false;
-        for production in &grammar.0 {
-            for symbol in production.rhs.iter().rev() {
-                if !(symbol.is_nonterminal() && nullable_set.contains(symbol)) {
-                    break;
+                if i_nullable && !nullable_set.contains(&prod.rhs[i]) {
+                    i_nullable = false;
                 }
-                let start_symbol_follow_set = follow_sets
-                    .get(&production.start_symbol)
-                    .cloned()
-                    .unwrap_or_else(HashSet::new);
 
-                let cur_follow_set = follow_sets.get_mut(symbol).unwrap();
-                if !fs_is_changed {
-                    let old_len = cur_follow_set.len();
-                    cur_follow_set.extend(start_symbol_follow_set);
-                    fs_is_changed = old_len != cur_follow_set.len();
-                } else {
-                    cur_follow_set.extend(start_symbol_follow_set);
-                }
-            }
-
-            for i in 0..production.rhs.len() {
-                for j in (i + 1)..production.rhs.len() {
-                    let j_symbol = &production.rhs[j];
-                    if j_symbol.is_terminal() && !j_symbol.is_epsilon() {
-                        fs_is_changed = follow_sets
-                            .get_mut(&production.rhs[i])
-                            .unwrap()
-                            .insert(j_symbol.clone());
-                        break;
-                    }
-                    if j_symbol.is_nonterminal() {
+                let mut j_nullable = true;
+                for j in i + 1..prod.rhs.len() {
+                    if j_nullable {
+                        // if Yi+1 ··· Yj−1 are all nullable
+                        //  then FOLLOW[Yi] = FOLLOW[Yi] ∪ FIRST[Yj]
                         let j_first_set = first_sets
-                            .get(j_symbol)
+                            .get(&prod.rhs[j])
                             .cloned()
                             .unwrap_or_else(HashSet::new);
-
-                        let i_follow_set = follow_sets.get_mut(&production.rhs[i]).unwrap();
-
-                        if !fs_is_changed {
+                        let i_follow_set = follow_sets.get_mut(&prod.rhs[i]).unwrap();
+                        if !sets_is_changed {
                             let old_len = i_follow_set.len();
                             i_follow_set.extend(j_first_set);
-                            fs_is_changed = old_len != i_follow_set.len();
+                            sets_is_changed = old_len != i_follow_set.len();
                         } else {
                             i_follow_set.extend(j_first_set);
                         }
+                    }
 
-                        if !nullable_set.contains(j_symbol) {
-                            break;
-                        }
+                    if j_nullable && !nullable_set.contains(&prod.rhs[j]) {
+                        j_nullable = false;
+                    }
+                }
+
+                if j_nullable {
+                    // if Yi+1 ··· Yk are all nullable
+                    //  then FOLLOW[Yi] = FOLLOW[Yi] ∪ FOLLOW[X]
+                    let cur_follow_set = first_sets
+                        .get(&prod.start_symbol)
+                        .cloned()
+                        .unwrap_or_else(HashSet::new);
+                    let i_follow_set = follow_sets.get_mut(&prod.rhs[i]).unwrap();
+                    if !sets_is_changed {
+                        let old_len = i_follow_set.len();
+                        i_follow_set.extend(cur_follow_set);
+                        sets_is_changed = old_len != i_follow_set.len();
+                    } else {
+                        i_follow_set.extend(cur_follow_set);
                     }
                 }
             }
+
+            if i_nullable {
+                // if all the Yi are nullable
+                //  then nullable[X] ← true
+                sets_is_changed = nullable_set.insert(prod.start_symbol.clone());
+            }
         }
     }
-    follow_sets
+
+    (first_sets, follow_sets, nullable_set)
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::compute_first_follow_nullable_sets;
     use crate::context_free::{grammar_3_6, Symbol};
-    use crate::{first_sets, follow_sets, nullable_set};
     use std::collections::{HashMap, HashSet};
 
     #[test]
-    fn test_nullable_set() {
-        let cases = vec![(
-            grammar_3_6(),
-            vec![Symbol::new_nonterminal("X"), Symbol::new_nonterminal("Y")],
-        )];
-        for (grammar, expected) in cases {
-            let expected = expected.into_iter().collect::<HashSet<_>>();
-            assert_eq!(nullable_set(&grammar), expected);
-        }
-    }
-
-    #[test]
-    fn test_first_sets() {
+    fn test_compute_first_follow_nullable_sets() {
         let cases = vec![(
             grammar_3_6(),
             vec![
@@ -202,18 +160,6 @@ mod tests {
                     .collect::<HashSet<_>>(),
                 ),
             ],
-        )];
-
-        for (grammar, expected) in cases {
-            let expected = expected.into_iter().collect::<HashMap<_, _>>();
-            assert_eq!(first_sets(&grammar, &nullable_set(&grammar)), expected);
-        }
-    }
-
-    #[test]
-    fn test_follow_sets() {
-        let cases = vec![(
-            grammar_3_6(),
             vec![
                 (
                     Symbol::new_nonterminal("X"),
@@ -237,20 +183,43 @@ mod tests {
                 ),
                 (Symbol::new_nonterminal("Z"), HashSet::new()),
             ],
+            vec![Symbol::new_nonterminal("X"), Symbol::new_nonterminal("Y")],
         )];
-
-        for (grammar, expected) in cases {
-            let expected = expected.into_iter().collect::<HashMap<_, _>>();
-            let nullable_set = nullable_set(&grammar);
-
-            assert_eq!(
-                follow_sets(
-                    &grammar,
-                    &nullable_set,
-                    &first_sets(&grammar, &nullable_set)
-                ),
-                expected
+        for (grammar, expected_first_sets, expected_follow_sets, expected_nullbale_set) in cases {
+            let (expected_first_sets, expected_follow_sets, expected_nullbale_set) = (
+                expected_first_sets.into_iter().collect::<HashMap<_, _>>(),
+                expected_follow_sets.into_iter().collect::<HashMap<_, _>>(),
+                expected_nullbale_set.into_iter().collect::<HashSet<_>>(),
             );
+
+            let (actual_first_sets, actual_follow_sets, actual_nullbale_set) =
+                compute_first_follow_nullable_sets(&grammar);
+            assert!(assert_map(&actual_first_sets, &expected_first_sets));
+            assert!(assert_map(&actual_follow_sets, &expected_follow_sets));
+            assert!(assert_set(&actual_nullbale_set, &expected_nullbale_set));
         }
+    }
+
+    fn assert_map(
+        actual: &HashMap<Symbol, HashSet<Symbol>>,
+        expected: &HashMap<Symbol, HashSet<Symbol>>,
+    ) -> bool {
+        for (k, v) in expected {
+            match actual.get(&k) {
+                Some(set) => {
+                    if !assert_set(set, v) {
+                        return false;
+                    }
+                }
+                None => {
+                    return false;
+                }
+            }
+        }
+        true
+    }
+
+    fn assert_set(actual: &HashSet<Symbol>, expected: &HashSet<Symbol>) -> bool {
+        expected.difference(&actual).count() == 0
     }
 }
