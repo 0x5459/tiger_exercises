@@ -22,7 +22,6 @@ void adjust(void)
 
 %}
 
-digit [0-9]
 %Start TIGER_INITIAL TIGER_COMMENT TIGER_STRING
 
 %%
