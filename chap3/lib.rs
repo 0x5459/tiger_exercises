@@ -1,225 +1,142 @@
 #![allow(non_snake_case)]
 
-use context_free::Terminal;
+use crate::cfg::{Grammar, Production, Symbol};
 
-use crate::context_free::{Grammar, Symbol};
-use std::collections::{HashMap, HashSet};
+pub mod cfg;
+pub mod lalr_1;
 
-pub mod context_free;
+#[macro_export]
+macro_rules! extend {
+    ($collection: ident, $iter_expr: expr, $is_changed_var: ident) => {
+        if $is_changed_var {
+            $collection.extend($iter_expr);
+        } else {
+            let old_len = $collection.len();
+            $collection.extend($iter_expr);
+            $is_changed_var = old_len != $collection.len() || $is_changed_var;
+        }
+    };
+}
 
-pub fn compute_first_follow_nullable_sets(
-    grammar: &Grammar,
-) -> (
-    HashMap<Symbol, HashSet<Symbol>>,
-    HashMap<Symbol, HashSet<Symbol>>,
-    HashSet<Symbol>,
-) {
-    // Initialize FIRST and FOLLOW to all empty sets. and nullable to signle Epsilon set.
-    let (mut first_sets, mut follow_sets, mut nullable_set) = (
-        HashMap::with_capacity(grammar.0.len()),
-        HashMap::with_capacity(grammar.0.len()),
-        [Symbol::Terminal(Terminal::Epsilon)]
-            .iter()
-            .cloned()
-            .collect::<HashSet<_>>(),
+/// grammar_3_6() returns grammar 3-6 (p33)
+/// Z -> d          Y -> ε      X -> Y
+/// Z -> X Y Z      Y -> c       X -> a
+pub fn grammar_3_6() -> Grammar {
+    let (X, Y, Z) = (
+        Symbol::new_nonterminal("X"),
+        Symbol::new_nonterminal("Y"),
+        Symbol::new_nonterminal("Z"),
     );
+    let (a, c, d) = (
+        Symbol::new_other_terminal("a"),
+        Symbol::new_other_terminal("c"),
+        Symbol::new_other_terminal("d"),
+    );
+    let epsilon = Symbol::new_epsilon();
+    let mut grammar_inner = Vec::new();
 
-    for prod in &grammar.0 {
-        first_sets.insert(prod.start_symbol.clone(), HashSet::new());
-        follow_sets.insert(prod.start_symbol.clone(), HashSet::new());
+    // Z -> d
+    grammar_inner.push(Production {
+        start_symbol: Z.clone(),
+        rhs: vec![d.clone()],
+    });
 
-        for symbol in &prod.rhs {
-            if symbol.is_terminal() {
-                if !first_sets.contains_key(symbol) {
-                    // Init first_sets for each terminal symbol.
-                    first_sets.insert(symbol.clone(), [symbol.clone()].iter().cloned().collect());
-                }
+    // Z -> X Y Z
+    grammar_inner.push(Production {
+        start_symbol: Z.clone(),
+        rhs: vec![X.clone(), Y.clone(), Z.clone()],
+    });
 
-                if !follow_sets.contains_key(symbol) {
-                    follow_sets.insert(symbol.clone(), HashSet::new());
-                }
-            }
-        }
-    }
+    // Y -> ε
+    grammar_inner.push(Production {
+        start_symbol: Y.clone(),
+        rhs: vec![epsilon.clone()],
+    });
 
-    let mut sets_is_changed = true;
-    while sets_is_changed {
-        // comput first sets and nullable set
-        for prod in &grammar.0 {
-            let mut i_nullable = true;
+    // Y -> c
+    grammar_inner.push(Production {
+        start_symbol: Y.clone(),
+        rhs: vec![c.clone()],
+    });
 
-            for i in 0..prod.rhs.len() {
-                if i_nullable {
-                    // if Y1 ··· Yi−1 are all nullable
-                    //   then FIRST[X] ← FIRST[X] ∪ FIRST[Yi]
-                    let i_first_set = first_sets
-                        .get(&prod.rhs[i])
-                        .cloned()
-                        .unwrap_or_else(HashSet::new);
-                    let cur_first_set = first_sets.get_mut(&prod.start_symbol).unwrap();
-                    if !sets_is_changed {
-                        let old_len = cur_first_set.len();
-                        cur_first_set.extend(i_first_set);
-                        sets_is_changed = old_len != cur_first_set.len();
-                    } else {
-                        cur_first_set.extend(i_first_set);
-                    }
-                }
+    // X -> Y
+    grammar_inner.push(Production {
+        start_symbol: X.clone(),
+        rhs: vec![Y.clone()],
+    });
 
-                if i_nullable && !nullable_set.contains(&prod.rhs[i]) {
-                    i_nullable = false;
-                }
+    // X -> a
+    grammar_inner.push(Production {
+        start_symbol: X.clone(),
+        rhs: vec![a.clone()],
+    });
+    Grammar::new(grammar_inner)
+}
 
-                let mut j_nullable = true;
-                for j in i + 1..prod.rhs.len() {
-                    if j_nullable {
-                        // if Yi+1 ··· Yj−1 are all nullable
-                        //  then FOLLOW[Yi] = FOLLOW[Yi] ∪ FIRST[Yj]
-                        let j_first_set = first_sets
-                            .get(&prod.rhs[j])
-                            .cloned()
-                            .unwrap_or_else(HashSet::new);
-                        let i_follow_set = follow_sets.get_mut(&prod.rhs[i]).unwrap();
-                        if !sets_is_changed {
-                            let old_len = i_follow_set.len();
-                            i_follow_set.extend(j_first_set);
-                            sets_is_changed = old_len != i_follow_set.len();
-                        } else {
-                            i_follow_set.extend(j_first_set);
-                        }
-                    }
+/// grammar_3_10() returns grammar 3-10 (p64)
+/// 0  S' -> S          3  E -> V
+/// 1  S -> V = E       4  V -> x
+/// 2  S -> E           5  V -> * E
+pub fn grammar_3_10() -> Grammar {
+    let (S_, S, E, V) = (
+        Symbol::new_nonterminal("S'"),
+        Symbol::new_nonterminal("S"),
+        Symbol::new_nonterminal("E"),
+        Symbol::new_nonterminal("V"),
+    );
+    let (eq, deref, x) = (
+        Symbol::new_other_terminal("="),
+        Symbol::new_other_terminal("*"),
+        Symbol::new_other_terminal("x"),
+    );
+    let mut grammar_inner = Vec::new();
+    // 0  S' -> S
+    grammar_inner.push(Production {
+        start_symbol: S_.clone(),
+        rhs: vec![S.clone()],
+    });
 
-                    if j_nullable && !nullable_set.contains(&prod.rhs[j]) {
-                        j_nullable = false;
-                    }
-                }
+    // 1  S -> V = E
+    grammar_inner.push(Production {
+        start_symbol: S.clone(),
+        rhs: vec![V.clone(), eq.clone(), E.clone()],
+    });
 
-                if j_nullable {
-                    // if Yi+1 ··· Yk are all nullable
-                    //  then FOLLOW[Yi] = FOLLOW[Yi] ∪ FOLLOW[X]
-                    let cur_follow_set = first_sets
-                        .get(&prod.start_symbol)
-                        .cloned()
-                        .unwrap_or_else(HashSet::new);
-                    let i_follow_set = follow_sets.get_mut(&prod.rhs[i]).unwrap();
-                    if !sets_is_changed {
-                        let old_len = i_follow_set.len();
-                        i_follow_set.extend(cur_follow_set);
-                        sets_is_changed = old_len != i_follow_set.len();
-                    } else {
-                        i_follow_set.extend(cur_follow_set);
-                    }
-                }
-            }
+    // 2  S -> E
+    grammar_inner.push(Production {
+        start_symbol: S,
+        rhs: vec![E.clone()],
+    });
 
-            if i_nullable {
-                // if all the Yi are nullable
-                //  then nullable[X] ← true
-                sets_is_changed = nullable_set.insert(prod.start_symbol.clone());
-            }
-        }
-    }
+    // 3  E -> V
+    grammar_inner.push(Production {
+        start_symbol: E.clone(),
+        rhs: vec![V.clone()],
+    });
 
-    (first_sets, follow_sets, nullable_set)
+    // 4  V -> x
+    grammar_inner.push(Production {
+        start_symbol: V.clone(),
+        rhs: vec![x],
+    });
+
+    // 5  V -> * E
+    grammar_inner.push(Production {
+        start_symbol: V,
+        rhs: vec![deref, E],
+    });
+
+    Grammar::new(grammar_inner)
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::compute_first_follow_nullable_sets;
-    use crate::context_free::{grammar_3_6, Symbol};
-    use std::collections::{HashMap, HashSet};
+    use crate::grammar_3_10;
 
     #[test]
-    fn test_compute_first_follow_nullable_sets() {
-        let cases = vec![(
-            grammar_3_6(),
-            vec![
-                (
-                    Symbol::new_nonterminal("X"),
-                    vec![
-                        Symbol::new_other_terminal("a"),
-                        Symbol::new_other_terminal("c"),
-                    ]
-                    .into_iter()
-                    .collect::<HashSet<_>>(),
-                ),
-                (
-                    Symbol::new_nonterminal("Y"),
-                    vec![Symbol::new_other_terminal("c")]
-                        .into_iter()
-                        .collect::<HashSet<_>>(),
-                ),
-                (
-                    Symbol::new_nonterminal("Z"),
-                    vec![
-                        Symbol::new_other_terminal("a"),
-                        Symbol::new_other_terminal("c"),
-                        Symbol::new_other_terminal("d"),
-                    ]
-                    .into_iter()
-                    .collect::<HashSet<_>>(),
-                ),
-            ],
-            vec![
-                (
-                    Symbol::new_nonterminal("X"),
-                    vec![
-                        Symbol::new_other_terminal("a"),
-                        Symbol::new_other_terminal("c"),
-                        Symbol::new_other_terminal("d"),
-                    ]
-                    .into_iter()
-                    .collect::<HashSet<_>>(),
-                ),
-                (
-                    Symbol::new_nonterminal("Y"),
-                    vec![
-                        Symbol::new_other_terminal("a"),
-                        Symbol::new_other_terminal("c"),
-                        Symbol::new_other_terminal("d"),
-                    ]
-                    .into_iter()
-                    .collect::<HashSet<_>>(),
-                ),
-                (Symbol::new_nonterminal("Z"), HashSet::new()),
-            ],
-            vec![Symbol::new_nonterminal("X"), Symbol::new_nonterminal("Y")],
-        )];
-        for (grammar, expected_first_sets, expected_follow_sets, expected_nullbale_set) in cases {
-            let (expected_first_sets, expected_follow_sets, expected_nullbale_set) = (
-                expected_first_sets.into_iter().collect::<HashMap<_, _>>(),
-                expected_follow_sets.into_iter().collect::<HashMap<_, _>>(),
-                expected_nullbale_set.into_iter().collect::<HashSet<_>>(),
-            );
-
-            let (actual_first_sets, actual_follow_sets, actual_nullbale_set) =
-                compute_first_follow_nullable_sets(&grammar);
-            assert!(assert_map(&actual_first_sets, &expected_first_sets));
-            assert!(assert_map(&actual_follow_sets, &expected_follow_sets));
-            assert!(assert_set(&actual_nullbale_set, &expected_nullbale_set));
+    fn test() {
+        for p in grammar_3_10().iter() {
+            println!("{}", p);
         }
-    }
-
-    fn assert_map(
-        actual: &HashMap<Symbol, HashSet<Symbol>>,
-        expected: &HashMap<Symbol, HashSet<Symbol>>,
-    ) -> bool {
-        for (k, v) in expected {
-            match actual.get(&k) {
-                Some(set) => {
-                    if !assert_set(set, v) {
-                        return false;
-                    }
-                }
-                None => {
-                    return false;
-                }
-            }
-        }
-        true
-    }
-
-    fn assert_set(actual: &HashSet<Symbol>, expected: &HashSet<Symbol>) -> bool {
-        expected.difference(&actual).count() == 0
     }
 }
