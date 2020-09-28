@@ -36,7 +36,7 @@ impl DerefMut for Grammar {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, Eq, PartialEq)]
 pub struct Production {
     pub start_symbol: Symbol,
     pub rhs: Vec<Symbol>,
@@ -356,9 +356,9 @@ mod tests {
         for (grammar, symbols, expected_first_s_set) in cases {
             let (first_sets, _, nullable_set) = compute_first_follow_nullable_sets(&grammar);
             let expected_first_s_set = expected_first_s_set.into_iter().collect::<HashSet<_>>();
-            let firset_s_set_op = FirstSSetOp::new(&first_sets, &nullable_set);
+            let first_s_set_op = FirstSSetOp::new(&first_sets, &nullable_set);
             assert!(assert_set(
-                &firset_s_set_op.compute(&symbols),
+                &first_s_set_op.compute(&symbols),
                 &expected_first_s_set
             ));
         }
